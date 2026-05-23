@@ -1,0 +1,184 @@
+aid: cartesia
+name: Cartesia
+description: >-
+  Cartesia is a real-time multimodal AI platform built around the Sonic family
+  of ultra-low-latency text-to-speech models and the Ink streaming
+  speech-to-text models. Sonic models deliver the first audio byte in as
+  little as 90ms, support more than 40 languages, and can express laughter
+  and emotion, making them well-suited to conversational AI, voice agents,
+  dubbing, and avatar applications. Ink models add streaming transcription
+  with native turn detection optimized for voice agents. Cartesia ships
+  Python, JavaScript, and Go SDKs and exposes REST, server-sent events, and
+  WebSocket interfaces for streaming audio. The platform is SOC 2 Type II,
+  HIPAA, and PCI Level 1 aligned.
+type: Index
+position: Provider
+access: 3rd-Party
+image: https://kinlane-productions.s3.amazonaws.com/apis-json/apis-json-logo.jpg
+tags:
+  - Voice
+  - TTS
+  - Text to Speech
+  - STT
+  - Speech to Text
+  - Streaming
+  - WebSocket
+  - Voice Agents
+  - Voice Clone
+  - Sonic
+  - Ink
+  - Real-Time
+url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/apis.yml
+created: '2026-05-23'
+modified: '2026-05-23'
+specificationVersion: '0.20'
+apis:
+  - aid: cartesia:tts-api
+    name: Cartesia Sonic Text-to-Speech API
+    description: >-
+      The Sonic text-to-speech API converts text into ultra-low-latency,
+      emotive speech with sub-100ms time-to-first-byte. It supports REST,
+      server-sent events, and WebSocket streaming for real-time voice agents
+      and applications.
+    humanURL: https://docs.cartesia.ai
+    baseURL: https://api.cartesia.ai
+    tags:
+      - TTS
+      - Streaming
+      - SSE
+      - WebSocket
+      - Real-Time
+      - Voice
+    properties:
+      - type: Documentation
+        url: https://docs.cartesia.ai
+      - type: GettingStarted
+        url: https://docs.cartesia.ai/get-started
+      - type: SignUp
+        url: https://play.cartesia.ai
+      - type: APIReference
+        url: https://docs.cartesia.ai/api-reference
+      - type: SDK
+        url: https://github.com/cartesia-ai/cartesia-python
+      - type: SDK
+        url: https://github.com/cartesia-ai/cartesia-js
+      - type: SDK
+        url: https://github.com/cartesia-ai/cartesia-go
+      - type: GitHubRepository
+        url: https://github.com/cartesia-ai
+      - type: Pricing
+        url: https://cartesia.ai/pricing
+      - type: Authentication
+        url: https://docs.cartesia.ai
+    features:
+      - name: Ultra-Low Latency
+        description: First audio byte in as little as 90ms for real-time conversational agents.
+      - name: Multilingual
+        description: More than 40 languages covering most major markets.
+      - name: Emotive Speech
+        description: Expressive prosody including laughter and emotion control.
+      - name: Streaming Outputs
+        description: REST, server-sent events, and WebSocket interfaces for streaming audio.
+      - name: Voice Library
+        description: Catalog of prebuilt voices accessible by ID across languages.
+      - name: Instant Voice Clone
+        description: Create a voice from a short reference clip for fast iteration.
+      - name: Professional Voice Clone
+        description: Higher-fidelity voice cloning for production avatars and brands.
+      - name: Voice Localization
+        description: Localize cloned and library voices into target languages.
+    useCases:
+      - name: Voice Agents
+        description: Build low-latency conversational voice agents for support and sales.
+      - name: Dubbing and Localization
+        description: Dub video and audio into additional languages with voice continuity.
+      - name: Interactive Characters
+        description: Voice game characters, avatars, and interactive narration.
+      - name: Accessibility
+        description: Provide spoken interfaces and read-aloud features for accessibility.
+      - name: Healthcare and IVR
+        description: Power compliant voice experiences in healthcare and IVR systems.
+    integrations:
+      - name: LiveKit
+      - name: Pipecat
+      - name: Vapi
+      - name: LangChain
+      - name: LlamaIndex
+      - name: Twilio
+      - name: Daily
+      - name: Vercel AI SDK
+      - name: Retell
+      - name: Bland
+    authentication:
+      - type: API Key
+        description: API key authentication via the X-API-Key header alongside the Cartesia-Version header.
+  - aid: cartesia:stt-api
+    name: Cartesia Ink Speech-to-Text API
+    description: >-
+      The Ink streaming speech-to-text API transcribes audio in real time with
+      native turn detection tuned for voice agents and conversational systems.
+    humanURL: https://docs.cartesia.ai
+    baseURL: https://api.cartesia.ai
+    tags:
+      - STT
+      - Streaming
+      - Turn Detection
+      - Voice Agents
+      - WebSocket
+    properties:
+      - type: Documentation
+        url: https://docs.cartesia.ai
+      - type: APIReference
+        url: https://docs.cartesia.ai/api-reference
+      - type: SDK
+        url: https://github.com/cartesia-ai/cartesia-python
+      - type: SDK
+        url: https://github.com/cartesia-ai/cartesia-js
+      - type: Pricing
+        url: https://cartesia.ai/pricing
+    features:
+      - name: Streaming Transcription
+        description: Real-time transcription of audio streams over WebSocket.
+      - name: Turn Detection
+        description: Native turn detection to decide when users finish speaking.
+      - name: Voice Agent Optimization
+        description: Tuned specifically for voice agent loops and barge-in handling.
+    useCases:
+      - name: Voice Agent Listening
+        description: Provide low-latency listening for voice agent stacks.
+      - name: Live Captioning
+        description: Generate live captions for meetings and broadcasts.
+      - name: Voice Form Capture
+        description: Capture structured input from voice in real time.
+    integrations:
+      - name: LiveKit
+      - name: Pipecat
+      - name: Daily
+      - name: Twilio
+    authentication:
+      - type: API Key
+        description: API key authentication via the X-API-Key header alongside the Cartesia-Version header.
+common:
+  - type: Website
+    url: https://cartesia.ai
+  - type: Documentation
+    url: https://docs.cartesia.ai
+  - type: Blog
+    url: https://cartesia.ai/blog
+  - type: GitHubOrganization
+    url: https://github.com/cartesia-ai
+  - type: Pricing
+    url: https://cartesia.ai/pricing
+  - type: TermsOfService
+    url: https://cartesia.ai/legal/terms-of-service
+  - type: PrivacyPolicy
+    url: https://cartesia.ai/legal/privacy-policy
+  - type: Discord
+    url: https://discord.gg/cartesia
+  - type: X
+    url: https://x.com/cartesia_ai
+  - type: LinkedIn
+    url: https://www.linkedin.com/company/cartesia-ai
+maintainers:
+  - FN: Kin Lane
+    email: kin@apievangelist.com
