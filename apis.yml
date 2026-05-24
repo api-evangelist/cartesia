@@ -179,6 +179,8 @@ common:
     url: https://x.com/cartesia_ai
   - type: LinkedIn
     url: https://www.linkedin.com/company/cartesia-ai
+  - type: LLMsTxt
+    url: https://docs.cartesia.ai/llms.txt
 maintainers:
   - FN: Kin Lane
     email: kin@apievangelist.com
