@@ -1,0 +1,981 @@
+asyncapi: 2.6.0
+info:
+  title: Cartesia Streaming WebSocket APIs
+  version: 2026-03-01
+  description: |
+    AsyncAPI description of Cartesia's real-time WebSocket interfaces, derived
+    strictly from the official Cartesia documentation at https://docs.cartesia.ai.
+
+    Three WebSocket surfaces are covered:
+
+    - Sonic TTS WebSocket (`/tts/websocket`) — text-to-speech streaming with
+      contexts, continuations, flushes, word and phoneme timestamps.
+    - Ink STT WebSocket (`/stt/websocket`) — streaming speech-to-text with
+      delta transcripts and manual finalize/close control frames.
+    - Ink STT Turns WebSocket (`/stt/turns/websocket`) — streaming
+      speech-to-text with native turn detection events.
+
+    All connections require the `Cartesia-Version` header or `cartesia_version`
+    query parameter, and authenticate via an `X-API-Key` header or an
+    `access_token` query parameter (the latter is the only browser-safe option
+    because browser WebSocket APIs cannot set custom headers).
+  contact:
+    name: Cartesia Documentation
+    url: https://docs.cartesia.ai
+  license:
+    name: Cartesia Terms of Service
+    url: https://cartesia.ai/legal/terms-of-service
+  termsOfService: https://cartesia.ai/legal/terms-of-service
+  tags:
+    - name: TTS
+    - name: STT
+    - name: Streaming
+    - name: WebSocket
+    - name: Sonic
+    - name: Ink
+
+defaultContentType: application/json
+
+servers:
+  tts:
+    url: api.cartesia.ai
+    protocol: wss
+    description: Sonic text-to-speech streaming WebSocket server.
+    bindings:
+      ws:
+        bindingVersion: 0.1.0
+        headers:
+          type: object
+          properties:
+            Cartesia-Version:
+              type: string
+              description: API version date string (e.g. 2026-03-01). Required unless supplied as the `cartesia_version` query parameter.
+              example: 2026-03-01
+            X-API-Key:
+              type: string
+              description: Cartesia API key. Required unless using `access_token` query parameter.
+        query:
+          type: object
+          properties:
+            cartesia_version:
+              type: string
+              description: API version (alternative to the Cartesia-Version header; required for browser clients).
+              example: 2026-03-01
+            access_token:
+              type: string
+              description: Short-lived access token for browser clients that cannot set custom headers.
+    security:
+      - apiKeyHeader: []
+      - accessTokenQuery: []
+  stt:
+    url: api.cartesia.ai
+    protocol: wss
+    description: Ink streaming speech-to-text WebSocket server (manual finalize).
+    bindings:
+      ws:
+        bindingVersion: 0.1.0
+        headers:
+          type: object
+          properties:
+            X-API-Key:
+              type: string
+        query:
+          type: object
+          required:
+            - model
+            - encoding
+            - sample_rate
+            - cartesia_version
+          properties:
+            model:
+              type: string
+              description: STT model identifier (e.g. ink-2, ink-whisper).
+              example: ink-2
+            encoding:
+              type: string
+              enum:
+                - pcm_s16le
+                - pcm_s32le
+                - pcm_f16le
+                - pcm_f32le
+                - pcm_mulaw
+                - pcm_alaw
+            sample_rate:
+              type: integer
+              description: Audio sample rate in Hz.
+            cartesia_version:
+              type: string
+              example: 2026-03-01
+            language:
+              type: string
+              description: ISO-639-1 language code. Defaults to `en`.
+              default: en
+            min_volume:
+              type: number
+              minimum: 0
+              maximum: 1
+              description: Silence detection threshold (ink-whisper only).
+            max_silence_duration_secs:
+              type: number
+              description: Auto-finalize threshold in seconds (ink-whisper only).
+            access_token:
+              type: string
+              description: Short-lived access token for browser clients.
+    security:
+      - apiKeyHeader: []
+      - accessTokenQuery: []
+  stt_turns:
+    url: api.cartesia.ai
+    protocol: wss
+    description: Ink streaming speech-to-text WebSocket server with native turn detection.
+    bindings:
+      ws:
+        bindingVersion: 0.1.0
+        headers:
+          type: object
+          properties:
+            X-API-Key:
+              type: string
+        query:
+          type: object
+          required:
+            - model
+            - encoding
+            - sample_rate
+            - cartesia_version
+          properties:
+            model:
+              type: string
+              example: ink-2
+            encoding:
+              type: string
+              enum:
+                - pcm_s16le
+                - pcm_s32le
+                - pcm_f16le
+                - pcm_f32le
+                - pcm_mulaw
+                - pcm_alaw
+            sample_rate:
+              type: integer
+            cartesia_version:
+              type: string
+              example: 2026-03-01
+            access_token:
+              type: string
+    security:
+      - apiKeyHeader: []
+      - accessTokenQuery: []
+
+channels:
+  /tts/websocket:
+    servers:
+      - tts
+    description: |
+      Sonic TTS bidirectional WebSocket. Clients send JSON `generationRequest`
+      or `cancelRequest` frames; the server returns JSON `chunk`,
+      `flush_done`, `done`, `timestamps`, `phoneme_timestamps`, and `error`
+      frames. Multiple concurrent contexts are multiplexed by `context_id`.
+    bindings:
+      ws:
+        bindingVersion: 0.1.0
+        method: GET
+    publish:
+      operationId: ttsClientFrame
+      summary: Client → Server frames for Sonic TTS.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/TtsGenerationRequest'
+          - $ref: '#/components/messages/TtsCancelRequest'
+    subscribe:
+      operationId: ttsServerFrame
+      summary: Server → Client frames for Sonic TTS.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/TtsChunk'
+          - $ref: '#/components/messages/TtsTimestamps'
+          - $ref: '#/components/messages/TtsPhonemeTimestamps'
+          - $ref: '#/components/messages/TtsFlushDone'
+          - $ref: '#/components/messages/TtsDone'
+          - $ref: '#/components/messages/TtsError'
+
+  /stt/websocket:
+    servers:
+      - stt
+    description: |
+      Ink STT streaming WebSocket. Clients send binary audio frames matching
+      the encoding/sample_rate query parameters, plus optional textual
+      `finalize` and `close` control frames. The server emits JSON
+      `transcript`, `flush_done`, `done`, and `error` frames.
+    bindings:
+      ws:
+        bindingVersion: 0.1.0
+        method: GET
+    publish:
+      operationId: sttClientFrame
+      summary: Client → Server frames for Ink STT.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/SttAudioBinary'
+          - $ref: '#/components/messages/SttFinalize'
+          - $ref: '#/components/messages/SttClose'
+    subscribe:
+      operationId: sttServerFrame
+      summary: Server → Client frames for Ink STT.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/SttTranscript'
+          - $ref: '#/components/messages/SttFlushDone'
+          - $ref: '#/components/messages/SttDone'
+          - $ref: '#/components/messages/SttError'
+
+  /stt/turns/websocket:
+    servers:
+      - stt_turns
+    description: |
+      Ink STT Turns WebSocket. Clients send binary audio frames plus an
+      optional JSON `close` control frame. The server emits `connected`,
+      `turn.start`, `turn.update`, `turn.eager_end`, `turn.resume`,
+      `turn.end`, and `error` events.
+    bindings:
+      ws:
+        bindingVersion: 0.1.0
+        method: GET
+    publish:
+      operationId: sttTurnsClientFrame
+      summary: Client → Server frames for Ink STT Turns.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/SttAudioBinary'
+          - $ref: '#/components/messages/SttTurnsClose'
+    subscribe:
+      operationId: sttTurnsServerFrame
+      summary: Server → Client frames for Ink STT Turns.
+      message:
+        oneOf:
+          - $ref: '#/components/messages/SttTurnsConnected'
+          - $ref: '#/components/messages/SttTurnStart'
+          - $ref: '#/components/messages/SttTurnUpdate'
+          - $ref: '#/components/messages/SttTurnEagerEnd'
+          - $ref: '#/components/messages/SttTurnResume'
+          - $ref: '#/components/messages/SttTurnEnd'
+          - $ref: '#/components/messages/SttTurnsError'
+
+components:
+  securitySchemes:
+    apiKeyHeader:
+      type: httpApiKey
+      name: X-API-Key
+      in: header
+      description: Cartesia API key.
+    accessTokenQuery:
+      type: httpApiKey
+      name: access_token
+      in: query
+      description: Short-lived access token suitable for browser clients that cannot set custom headers.
+
+  messages:
+    # ----- TTS client frames -----
+    TtsGenerationRequest:
+      name: ttsGenerationRequest
+      title: TTS Generation Request
+      summary: Submit (or continue) a transcript for streaming synthesis on a context.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsGenerationRequest'
+    TtsCancelRequest:
+      name: ttsCancelRequest
+      title: TTS Cancel Request
+      summary: Terminate an in-flight generation for a context.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsCancelRequest'
+
+    # ----- TTS server frames -----
+    TtsChunk:
+      name: ttsChunk
+      title: TTS Audio Chunk
+      summary: A base64-encoded audio chunk for an active context.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsChunk'
+    TtsTimestamps:
+      name: ttsTimestamps
+      title: TTS Word Timestamps
+      summary: Word-level start/end timings for synthesized audio.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsTimestamps'
+    TtsPhonemeTimestamps:
+      name: ttsPhonemeTimestamps
+      title: TTS Phoneme Timestamps
+      summary: Phoneme-level start/end timings for synthesized audio.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsPhonemeTimestamps'
+    TtsFlushDone:
+      name: ttsFlushDone
+      title: TTS Flush Done
+      summary: Acknowledgement that a flush boundary has been emitted on the context.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsFlushDone'
+    TtsDone:
+      name: ttsDone
+      title: TTS Done
+      summary: Final generation-complete signal for a context.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsDone'
+    TtsError:
+      name: ttsError
+      title: TTS Error
+      summary: Error condition on the TTS WebSocket or a specific context.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/TtsError'
+
+    # ----- STT client frames -----
+    SttAudioBinary:
+      name: sttAudioBinary
+      title: STT Audio Frame
+      summary: Raw audio bytes matching the negotiated encoding and sample rate.
+      contentType: application/octet-stream
+      payload:
+        type: string
+        format: binary
+        description: Binary WebSocket frame carrying ~100ms of audio.
+    SttFinalize:
+      name: sttFinalize
+      title: STT Finalize Control
+      summary: Plain-text `finalize` control frame; triggers transcription of buffered audio.
+      contentType: text/plain
+      payload:
+        type: string
+        const: finalize
+    SttClose:
+      name: sttClose
+      title: STT Close Control
+      summary: Plain-text `close` control frame; flushes remaining audio and ends the session.
+      contentType: text/plain
+      payload:
+        type: string
+        const: close
+
+    # ----- STT server frames -----
+    SttTranscript:
+      name: sttTranscript
+      title: STT Transcript
+      summary: Delta transcript with word-level timing.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttTranscript'
+    SttFlushDone:
+      name: sttFlushDone
+      title: STT Flush Done
+      summary: Acknowledgement of a `finalize` control frame.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttFlushDone'
+    SttDone:
+      name: sttDone
+      title: STT Done
+      summary: Acknowledgement of a `close` control frame.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttDone'
+    SttError:
+      name: sttError
+      title: STT Error
+      summary: Error condition on the STT WebSocket.
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttError'
+
+    # ----- STT Turns frames -----
+    SttTurnsClose:
+      name: sttTurnsClose
+      title: STT Turns Close
+      summary: 'JSON `{ "type": "close" }` control frame for the Turns WebSocket.'
+      contentType: application/json
+      payload:
+        type: object
+        required: [type]
+        properties:
+          type:
+            type: string
+            const: close
+    SttTurnsConnected:
+      name: sttTurnsConnected
+      title: STT Turns Connected
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttTurnsConnected'
+    SttTurnStart:
+      name: sttTurnStart
+      title: STT Turn Start
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttTurnStart'
+    SttTurnUpdate:
+      name: sttTurnUpdate
+      title: STT Turn Update
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttTurnUpdate'
+    SttTurnEagerEnd:
+      name: sttTurnEagerEnd
+      title: STT Turn Eager End
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttTurnEagerEnd'
+    SttTurnResume:
+      name: sttTurnResume
+      title: STT Turn Resume
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttTurnResume'
+    SttTurnEnd:
+      name: sttTurnEnd
+      title: STT Turn End
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttTurnEnd'
+    SttTurnsError:
+      name: sttTurnsError
+      title: STT Turns Error
+      contentType: application/json
+      payload:
+        $ref: '#/components/schemas/SttError'
+
+  schemas:
+    # ===== TTS schemas =====
+    TtsVoice:
+      type: object
+      required: [mode, id]
+      properties:
+        mode:
+          type: string
+          enum: [id]
+          description: Voice selection mode. Only `id` is supported on the WebSocket.
+        id:
+          type: string
+          description: Voice UUID from the Cartesia voice library or a cloned voice.
+
+    TtsOutputFormat:
+      type: object
+      required: [container, encoding, sample_rate]
+      properties:
+        container:
+          type: string
+          enum: [raw]
+        encoding:
+          type: string
+          enum:
+            - pcm_f32le
+            - pcm_s16le
+            - pcm_mulaw
+            - pcm_alaw
+        sample_rate:
+          type: integer
+          enum: [8000, 16000, 22050, 24000, 44100, 48000]
+
+    TtsEmotion:
+      type: string
+      description: Emotion preset for sonic-3 and sonic-3.5.
+      enum:
+        - Happy
+        - Excited
+        - Enthusiastic
+        - Elated
+        - Euphoric
+        - Triumphant
+        - Amazed
+        - Surprised
+        - Flirtatious
+        - Joking/Comedic
+        - Curious
+        - Content
+        - Peaceful
+        - Serene
+        - Calm
+        - Grateful
+        - Affectionate
+        - Trust
+        - Sympathetic
+        - Anticipation
+        - Mysterious
+        - Angry
+        - Mad
+        - Outraged
+        - Frustrated
+        - Agitated
+        - Threatened
+        - Disgusted
+        - Contempt
+        - Envious
+        - Sarcastic
+        - Ironic
+        - Sad
+        - Dejected
+        - Melancholic
+        - Disappointed
+        - Hurt
+        - Guilty
+        - Bored
+        - Tired
+        - Rejected
+        - Nostalgic
+        - Wistful
+        - Apologetic
+        - Hesitant
+        - Insecure
+        - Confused
+        - Resigned
+        - Anxious
+        - Panicked
+        - Alarmed
+        - Scared
+        - Neutral
+        - Proud
+        - Confident
+        - Distant
+        - Skeptical
+        - Contemplative
+        - Determined
+
+    TtsGenerationConfig:
+      type: object
+      description: Speech attribute configuration for sonic-3 and sonic-3.5.
+      properties:
+        volume:
+          type: number
+          minimum: 0.5
+          maximum: 2.0
+          default: 1.0
+        speed:
+          type: number
+          minimum: 0.6
+          maximum: 1.5
+          default: 1.0
+        emotion:
+          $ref: '#/components/schemas/TtsEmotion'
+
+    TtsLanguage:
+      type: string
+      enum:
+        - en
+        - fr
+        - de
+        - es
+        - pt
+        - zh
+        - ja
+        - hi
+        - it
+        - ko
+        - nl
+        - pl
+        - ru
+        - sv
+        - tr
+        - tl
+        - bg
+        - ro
+        - ar
+        - cs
+        - el
+        - fi
+        - hr
+        - ms
+        - sk
+        - da
+        - ta
+        - uk
+        - hu
+        - "no"
+        - vi
+        - bn
+        - th
+        - he
+        - ka
+        - id
+        - te
+        - gu
+        - kn
+        - ml
+        - mr
+        - pa
+
+    TtsGenerationRequest:
+      type: object
+      required:
+        - model_id
+        - transcript
+        - voice
+        - output_format
+        - context_id
+      properties:
+        model_id:
+          type: string
+          description: Sonic model ID, e.g. `sonic-3.5`, `sonic-3.5-2026-05-04`, `sonic-latest`, `sonic-3`, `sonic-2`, `sonic-turbo`, `sonic`.
+          example: sonic-3.5
+        transcript:
+          type: string
+          description: Text chunk to synthesize on this context.
+        voice:
+          $ref: '#/components/schemas/TtsVoice'
+        output_format:
+          $ref: '#/components/schemas/TtsOutputFormat'
+        context_id:
+          type: string
+          description: Unique identifier for the generation context. Reuse to continue/flush.
+        language:
+          $ref: '#/components/schemas/TtsLanguage'
+        continue:
+          type: boolean
+          default: false
+          description: When true, indicates more transcript chunks will follow on this context.
+        max_buffer_delay_ms:
+          type: integer
+          minimum: 0
+          maximum: 5000
+          default: 3000
+          description: Maximum buffer delay in milliseconds before emitting audio.
+        flush:
+          type: boolean
+          description: When true, forces a flush boundary on the context.
+        add_timestamps:
+          type: boolean
+          default: false
+          description: Emit word-level `timestamps` frames.
+        add_phoneme_timestamps:
+          type: boolean
+          default: false
+          description: Emit `phoneme_timestamps` frames.
+        use_normalized_timestamps:
+          type: boolean
+          description: Use normalized (vs. original) text timestamps.
+        pronunciation_dict_id:
+          type: string
+          description: Pronunciation dictionary ID (sonic-3 and newer).
+        generation_config:
+          $ref: '#/components/schemas/TtsGenerationConfig'
+        speed:
+          type: string
+          enum: [slow, normal, fast]
+          deprecated: true
+          description: Deprecated speed preset; use `generation_config.speed` instead.
+
+    TtsCancelRequest:
+      type: object
+      required:
+        - context_id
+        - cancel
+      properties:
+        context_id:
+          type: string
+        cancel:
+          type: boolean
+          const: true
+
+    TtsChunk:
+      type: object
+      required: [type, data, done, status_code, step_time, context_id]
+      properties:
+        type:
+          type: string
+          const: chunk
+        data:
+          type: string
+          format: byte
+          description: Base64-encoded audio bytes in the negotiated encoding.
+        done:
+          type: boolean
+          description: True when this is the final chunk for the context.
+        status_code:
+          type: integer
+          description: HTTP-style status code.
+        step_time:
+          type: number
+          description: Server processing time for the step in milliseconds.
+        context_id:
+          type: string
+
+    TtsTimestamps:
+      type: object
+      required: [type, done, status_code, context_id]
+      properties:
+        type:
+          type: string
+          const: timestamps
+        done:
+          type: boolean
+        status_code:
+          type: integer
+        context_id:
+          type: string
+        word_timestamps:
+          type: object
+          properties:
+            words:
+              type: array
+              items:
+                type: string
+            start:
+              type: array
+              items:
+                type: number
+            end:
+              type: array
+              items:
+                type: number
+
+    TtsPhonemeTimestamps:
+      type: object
+      required: [type, done, status_code, context_id]
+      properties:
+        type:
+          type: string
+          const: phoneme_timestamps
+        done:
+          type: boolean
+        status_code:
+          type: integer
+        context_id:
+          type: string
+        phoneme_timestamps:
+          type: object
+          properties:
+            phonemes:
+              type: array
+              items:
+                type: string
+            start:
+              type: array
+              items:
+                type: number
+            end:
+              type: array
+              items:
+                type: number
+
+    TtsFlushDone:
+      type: object
+      required: [type, done, flush_done, flush_id, status_code, context_id]
+      properties:
+        type:
+          type: string
+          const: flush_done
+        done:
+          type: boolean
+        flush_done:
+          type: boolean
+          const: true
+        flush_id:
+          type: integer
+          minimum: 1
+          description: Monotonic counter of flushes on this context (starts at 1).
+        status_code:
+          type: integer
+        context_id:
+          type: string
+
+    TtsDone:
+      type: object
+      required: [type, done, status_code, context_id]
+      properties:
+        type:
+          type: string
+          const: done
+        done:
+          type: boolean
+          const: true
+        status_code:
+          type: integer
+        context_id:
+          type: string
+
+    TtsError:
+      type: object
+      required: [type, done]
+      properties:
+        type:
+          type: string
+          const: error
+        done:
+          type: boolean
+        error_code:
+          type: string
+          description: Machine-readable error code.
+        status_code:
+          type: number
+          description: HTTP-style status code.
+        title:
+          type: string
+        message:
+          type: string
+        doc_url:
+          type: string
+          format: uri
+        request_id:
+          type: string
+          description: WebSocket connection identifier.
+        context_id:
+          type: string
+
+    # ===== STT schemas =====
+    SttWord:
+      type: object
+      required: [word, start, end]
+      properties:
+        word:
+          type: string
+        start:
+          type: number
+          description: Start time in seconds relative to stream start.
+        end:
+          type: number
+          description: End time in seconds relative to stream start.
+
+    SttTranscript:
+      type: object
+      required: [type, is_final, request_id, text]
+      properties:
+        type:
+          type: string
+          const: transcript
+        is_final:
+          type: boolean
+          description: True when this delta is the final version for the segment.
+        request_id:
+          type: string
+          format: uuid
+        text:
+          type: string
+          description: Delta from the last finalized chunk.
+        duration:
+          type: number
+        words:
+          type: array
+          items:
+            $ref: '#/components/schemas/SttWord'
+
+    SttFlushDone:
+      type: object
+      required: [type, request_id]
+      properties:
+        type:
+          type: string
+          const: flush_done
+        request_id:
+          type: string
+          format: uuid
+
+    SttDone:
+      type: object
+      required: [type, request_id]
+      properties:
+        type:
+          type: string
+          const: done
+        request_id:
+          type: string
+          format: uuid
+
+    SttError:
+      type: object
+      required: [type, status_code, title, message]
+      properties:
+        type:
+          type: string
+          const: error
+        status_code:
+          type: number
+        title:
+          type: string
+        message:
+          type: string
+        error_code:
+          type: string
+          nullable: true
+        doc_url:
+          type: string
+          format: uri
+        request_id:
+          type: string
+          format: uuid
+
+    # ===== STT Turns schemas =====
+    SttTurnsConnected:
+      type: object
+      required: [type, request_id]
+      properties:
+        type:
+          type: string
+          const: connected
+        request_id:
+          type: string
+          format: uuid
+
+    SttTurnStart:
+      type: object
+      required: [type, request_id]
+      properties:
+        type:
+          type: string
+          const: turn.start
+        request_id:
+          type: string
+          format: uuid
+
+    SttTurnUpdate:
+      type: object
+      required: [type, transcript, request_id]
+      properties:
+        type:
+          type: string
+          const: turn.update
+        transcript:
+          type: string
+          description: Cumulative transcription for the in-progress turn.
+        request_id:
+          type: string
+          format: uuid
+
+    SttTurnEagerEnd:
+      type: object
+      required: [type, transcript, request_id]
+      properties:
+        type:
+          type: string
+          const: turn.eager_end
+        transcript:
+          type: string
+        request_id:
+          type: string
+          format: uuid
+
+    SttTurnResume:
+      type: object
+      required: [type, request_id]
+      properties:
+        type:
+          type: string
+          const: turn.resume
+        request_id:
+          type: string
+          format: uuid
+
+    SttTurnEnd:
+      type: object
+      required: [type, transcript, request_id]
+      properties:
+        type:
+          type: string
+          const: turn.end
+        transcript:
+          type: string
+        request_id:
+          type: string
+          format: uuid

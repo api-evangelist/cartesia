@@ -30,7 +30,7 @@ tags:
   - Real-Time
 url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/apis.yml
 created: '2026-05-23'
-modified: '2026-05-23'
+modified: '2026-05-29'
 specificationVersion: '0.20'
 apis:
   - aid: cartesia:tts-api
@@ -58,6 +58,8 @@ apis:
         url: https://play.cartesia.ai
       - type: APIReference
         url: https://docs.cartesia.ai/api-reference
+      - type: AsyncAPI
+        url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
       - type: SDK
         url: https://github.com/cartesia-ai/cartesia-python
       - type: SDK
@@ -130,6 +132,8 @@ apis:
         url: https://docs.cartesia.ai
       - type: APIReference
         url: https://docs.cartesia.ai/api-reference
+      - type: AsyncAPI
+        url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
       - type: SDK
         url: https://github.com/cartesia-ai/cartesia-python
       - type: SDK
