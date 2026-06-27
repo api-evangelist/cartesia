@@ -50,17 +50,17 @@ apis:
     url: https://docs.cartesia.ai
   - type: GettingStarted
     url: https://docs.cartesia.ai/get-started
-  - type: SignUp
+  - type: Signup
     url: https://play.cartesia.ai
   - type: APIReference
     url: https://docs.cartesia.ai/api-reference
   - type: AsyncAPI
     url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
-  - type: SDK
+  - type: SDKs
     url: https://github.com/cartesia-ai/cartesia-python
-  - type: SDK
+  - type: SDKs
     url: https://github.com/cartesia-ai/cartesia-js
-  - type: SDK
+  - type: SDKs
     url: https://github.com/cartesia-ai/cartesia-go
   - type: GitHubRepository
     url: https://github.com/cartesia-ai
@@ -134,9 +134,9 @@ apis:
     url: https://docs.cartesia.ai/api-reference
   - type: AsyncAPI
     url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
-  - type: SDK
+  - type: SDKs
     url: https://github.com/cartesia-ai/cartesia-python
-  - type: SDK
+  - type: SDKs
     url: https://github.com/cartesia-ai/cartesia-js
   - type: Pricing
     url: https://cartesia.ai/pricing
@@ -184,7 +184,7 @@ common:
   url: https://x.com/cartesia_ai
 - type: LinkedIn
   url: https://www.linkedin.com/company/cartesia-ai
-- type: LLMsTxt
+- type: LlmsText
   url: https://docs.cartesia.ai/llms.txt
 maintainers:
 - FN: Kin Lane

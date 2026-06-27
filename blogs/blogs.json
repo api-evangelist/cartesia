@@ -3,16 +3,12 @@
   "feeds": [
     {
       "source": "https://cartesia.ai/blog",
-      "feed_url": "https://cartesia.ai/blog",
-      "title": "",
+      "feed_url": "",
       "saved": 0,
-      "method": "none"
-    },
-    {
-      "source": "https://docs.cartesia.ai",
-      "error": "HTTPError"
+      "method": "agent-scrape"
     }
   ],
+  "fetched": "2026-06-27T12:34:00Z",
   "post_count": 0,
-  "fetched": "2026-06-14T20:42:17Z"
+  "agent_pulled": "2026-06-27"
 }
