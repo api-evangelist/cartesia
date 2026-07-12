@@ -164,6 +164,10 @@ apis:
     description: API key authentication via the X-API-Key header alongside the Cartesia-Version
       header.
 common:
+- type: DomainSecurity
+  url: security/cartesia-domain-security.yml
+- type: Authentication
+  url: authentication/cartesia-authentication.yml
 - type: Website
   url: https://cartesia.ai
 - type: Documentation
