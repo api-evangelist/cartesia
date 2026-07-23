@@ -1,0 +1,185 @@
+openapi: 3.1.0
+info:
+  title: Cartesia Auth Voices API
+  description: Cartesia is a real-time multimodal AI platform built around the Sonic text-to-speech and Ink streaming speech-to-text models. The REST API supports synchronous and streaming generation, voice management, voice cloning, and access-token issuance.
+  version: '2024-11-13'
+  contact:
+    name: Cartesia
+    url: https://docs.cartesia.ai
+servers:
+- url: https://api.cartesia.ai
+  description: Production
+security:
+- ApiKeyAuth: []
+- BearerAuth: []
+tags:
+- name: Voices
+paths:
+  /voices:
+    get:
+      tags:
+      - Voices
+      summary: List voices
+      operationId: listVoices
+      parameters:
+      - $ref: '#/components/parameters/CartesiaVersion'
+      responses:
+        '200':
+          description: Voice list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Voice'
+  /voices/{id}:
+    parameters:
+    - $ref: '#/components/parameters/CartesiaVersion'
+    - in: path
+      name: id
+      required: true
+      schema:
+        type: string
+    get:
+      tags:
+      - Voices
+      summary: Get a voice
+      operationId: getVoice
+      responses:
+        '200':
+          description: Voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+    patch:
+      tags:
+      - Voices
+      summary: Update a voice
+      operationId: updateVoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Updated voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+    delete:
+      tags:
+      - Voices
+      summary: Delete a voice
+      operationId: deleteVoice
+      responses:
+        '204':
+          description: Deleted
+  /voices/clone:
+    post:
+      tags:
+      - Voices
+      summary: Clone a voice from a sample
+      operationId: cloneVoice
+      parameters:
+      - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+              - clip
+              - name
+              properties:
+                clip:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+                description:
+                  type: string
+                language:
+                  type: string
+                mode:
+                  type: string
+                  enum:
+                  - stability
+                  - similarity
+      responses:
+        '200':
+          description: Cloned voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+  /voices/localize:
+    post:
+      tags:
+      - Voices
+      summary: Localize an existing voice to a different language
+      operationId: localizeVoice
+      parameters:
+      - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+              - voice_id
+              - language
+              properties:
+                voice_id:
+                  type: string
+                language:
+                  type: string
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Localized voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+components:
+  parameters:
+    CartesiaVersion:
+      in: header
+      name: Cartesia-Version
+      required: true
+      schema:
+        type: string
+        example: '2024-11-13'
+  schemas:
+    Voice:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        language:
+          type: string
+        embedding:
+          type: array
+          items:
+            type: number
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Cartesia API key (sk_car_...)
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Short-lived client access token
