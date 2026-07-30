@@ -10,9 +10,22 @@ description: Cartesia is a real-time multimodal AI platform built around the Son
   and WebSocket interfaces for streaming audio. The platform is SOC 2 Type II, HIPAA,
   and PCI Level 1 aligned.
 type: Index
+accessModel:
+  pricing: free
+  onboarding: self-serve
+  trial: false
+  try_now: true
+  public: false
+  label: Free · Self-serve signup
+  confidence: high
+  source:
+  - plans
+  - authentication
+  generated: '2026-07-22'
+  method: derived
 position: Provider
 access: 3rd-Party
-image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/apis-json-logo.jpg
+image: https://kinlane-images.s3.amazonaws.com/shared/apis-json/icons/cartesia.png
 tags:
 - Voice
 - TTS
@@ -33,9 +46,9 @@ specificationVersion: '0.20'
 apis:
 - aid: cartesia:tts-api
   name: Cartesia Sonic Text-to-Speech API
-  description: The Sonic text-to-speech API converts text into ultra-low-latency,
-    emotive speech with sub-100ms time-to-first-byte. It supports REST, server-sent
-    events, and WebSocket streaming for real-time voice agents and applications.
+  description: >-
+    The Sonic text-to-speech API converts text into ultra-low-latency, emotive speech with sub-100ms time-to-first-byte.
+    It supports REST, server-sent events, and WebSocket streaming for real-time voice agents and applications.
   humanURL: https://docs.cartesia.ai
   baseURL: https://api.cartesia.ai
   tags:
@@ -55,7 +68,8 @@ apis:
   - type: APIReference
     url: https://docs.cartesia.ai/api-reference
   - type: AsyncAPI
-    url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
+    url: >-
+      https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
   - type: SDKs
     url: https://github.com/cartesia-ai/cartesia-python
   - type: SDKs
@@ -72,15 +86,13 @@ apis:
     type: GraphQL
   features:
   - name: Ultra-Low Latency
-    description: First audio byte in as little as 90ms for real-time conversational
-      agents.
+    description: First audio byte in as little as 90ms for real-time conversational agents.
   - name: Multilingual
     description: More than 40 languages covering most major markets.
   - name: Emotive Speech
     description: Expressive prosody including laughter and emotion control.
   - name: Streaming Outputs
-    description: REST, server-sent events, and WebSocket interfaces for streaming
-      audio.
+    description: REST, server-sent events, and WebSocket interfaces for streaming audio.
   - name: Voice Library
     description: Catalog of prebuilt voices accessible by ID across languages.
   - name: Instant Voice Clone
@@ -113,12 +125,12 @@ apis:
   - name: Bland
   authentication:
   - type: API Key
-    description: API key authentication via the X-API-Key header alongside the Cartesia-Version
-      header.
+    description: API key authentication via the X-API-Key header alongside the Cartesia-Version header.
 - aid: cartesia:stt-api
   name: Cartesia Ink Speech-to-Text API
-  description: The Ink streaming speech-to-text API transcribes audio in real time
-    with native turn detection tuned for voice agents and conversational systems.
+  description: >-
+    The Ink streaming speech-to-text API transcribes audio in real time with native turn detection tuned
+    for voice agents and conversational systems.
   humanURL: https://docs.cartesia.ai
   baseURL: https://api.cartesia.ai
   tags:
@@ -133,7 +145,8 @@ apis:
   - type: APIReference
     url: https://docs.cartesia.ai/api-reference
   - type: AsyncAPI
-    url: https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
+    url: >-
+      https://raw.githubusercontent.com/api-evangelist/cartesia/refs/heads/main/asyncapi/cartesia-asyncapi.yml
   - type: SDKs
     url: https://github.com/cartesia-ai/cartesia-python
   - type: SDKs
@@ -161,8 +174,47 @@ apis:
   - name: Twilio
   authentication:
   - type: API Key
-    description: API key authentication via the X-API-Key header alongside the Cartesia-Version
-      header.
+    description: API key authentication via the X-API-Key header alongside the Cartesia-Version header.
+- aid: cartesia:cartesia-auth-api
+  name: Cartesia Auth API
+  description: The Auth API from Cartesia — 1 operation(s) for auth.
+  humanURL: https://docs.cartesia.ai
+  baseURL: https://api.cartesia.ai
+  tags:
+  - Auth
+  properties:
+  - type: OpenAPI
+    url: openapi/cartesia-auth-api-openapi.yml
+- aid: cartesia:cartesia-stt-api
+  name: Cartesia STT API
+  description: The STT API from Cartesia — 1 operation(s) for stt.
+  humanURL: https://docs.cartesia.ai
+  baseURL: https://api.cartesia.ai
+  tags:
+  - STT
+  properties:
+  - type: OpenAPI
+    url: openapi/cartesia-stt-api-openapi.yml
+- aid: cartesia:cartesia-tts-api
+  name: Cartesia TTS API
+  description: The TTS API from Cartesia — 2 operation(s) for tts.
+  humanURL: https://docs.cartesia.ai
+  baseURL: https://api.cartesia.ai
+  tags:
+  - TTS
+  properties:
+  - type: OpenAPI
+    url: openapi/cartesia-tts-api-openapi.yml
+- aid: cartesia:cartesia-voices-api
+  name: Cartesia Voices API
+  description: The Voices API from Cartesia — 4 operation(s) for voices.
+  humanURL: https://docs.cartesia.ai
+  baseURL: https://api.cartesia.ai
+  tags:
+  - Voices
+  properties:
+  - type: OpenAPI
+    url: openapi/cartesia-voices-api-openapi.yml
 common:
 - type: AgenticAccess
   url: agentic-access/cartesia-agentic-access.yml
