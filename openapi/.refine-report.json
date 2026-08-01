@@ -1,0 +1,20 @@
+{
+  "provider": "cartesia",
+  "sources": [
+    "cartesia-auth-api-openapi.yml",
+    "cartesia-stt-api-openapi.yml",
+    "cartesia-tts-api-openapi.yml",
+    "cartesia-voices-api-openapi.yml"
+  ],
+  "outputs": [
+    "cartesia-auth-api-openapi.yml",
+    "cartesia-stt-api-openapi.yml",
+    "cartesia-tts-api-openapi.yml",
+    "cartesia-voices-api-openapi.yml"
+  ],
+  "archived": [],
+  "errors": [],
+  "warnings": [],
+  "notes": [],
+  "skipped": []
+}

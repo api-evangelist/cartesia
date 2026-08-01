@@ -1,0 +1,329 @@
+openapi: 3.1.0
+info:
+  title: Cartesia API
+  description: >-
+    Cartesia is a real-time multimodal AI platform built around the Sonic
+    text-to-speech and Ink streaming speech-to-text models. The REST API
+    supports synchronous and streaming generation, voice management, voice
+    cloning, and access-token issuance.
+  version: "2024-11-13"
+  contact:
+    name: Cartesia
+    url: https://docs.cartesia.ai
+servers:
+  - url: https://api.cartesia.ai
+    description: Production
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+tags:
+  - name: TTS
+  - name: STT
+  - name: Voices
+  - name: Auth
+paths:
+  /tts/bytes:
+    post:
+      tags: [TTS]
+      summary: Generate speech audio as bytes
+      operationId: ttsBytes
+      parameters:
+        - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TtsRequest'
+      responses:
+        '200':
+          description: Binary audio bytes
+          content:
+            audio/wav:
+              schema:
+                type: string
+                format: binary
+            audio/mpeg:
+              schema:
+                type: string
+                format: binary
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+  /tts/sse:
+    post:
+      tags: [TTS]
+      summary: Generate speech audio as a Server-Sent Events stream
+      operationId: ttsSse
+      parameters:
+        - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TtsRequest'
+      responses:
+        '200':
+          description: SSE stream of audio chunks
+          content:
+            text/event-stream:
+              schema:
+                type: string
+  /stt/transcribe:
+    post:
+      tags: [STT]
+      summary: Batch transcribe audio with the Ink model
+      operationId: sttTranscribe
+      parameters:
+        - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, model]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                model:
+                  type: string
+                language:
+                  type: string
+                timestamp_granularities:
+                  type: array
+                  items:
+                    type: string
+      responses:
+        '200':
+          description: Transcript
+          content:
+            application/json:
+              schema:
+                type: object
+  /voices:
+    get:
+      tags: [Voices]
+      summary: List voices
+      operationId: listVoices
+      parameters:
+        - $ref: '#/components/parameters/CartesiaVersion'
+      responses:
+        '200':
+          description: Voice list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Voice'
+  /voices/{id}:
+    parameters:
+      - $ref: '#/components/parameters/CartesiaVersion'
+      - in: path
+        name: id
+        required: true
+        schema:
+          type: string
+    get:
+      tags: [Voices]
+      summary: Get a voice
+      operationId: getVoice
+      responses:
+        '200':
+          description: Voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+    patch:
+      tags: [Voices]
+      summary: Update a voice
+      operationId: updateVoice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Updated voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+    delete:
+      tags: [Voices]
+      summary: Delete a voice
+      operationId: deleteVoice
+      responses:
+        '204':
+          description: Deleted
+  /voices/clone:
+    post:
+      tags: [Voices]
+      summary: Clone a voice from a sample
+      operationId: cloneVoice
+      parameters:
+        - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [clip, name]
+              properties:
+                clip:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+                description:
+                  type: string
+                language:
+                  type: string
+                mode:
+                  type: string
+                  enum: [stability, similarity]
+      responses:
+        '200':
+          description: Cloned voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+  /voices/localize:
+    post:
+      tags: [Voices]
+      summary: Localize an existing voice to a different language
+      operationId: localizeVoice
+      parameters:
+        - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [voice_id, language]
+              properties:
+                voice_id:
+                  type: string
+                language:
+                  type: string
+                name:
+                  type: string
+      responses:
+        '200':
+          description: Localized voice
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Voice'
+  /auth/access-token:
+    post:
+      tags: [Auth]
+      summary: Generate a short-lived client access token
+      operationId: generateAccessToken
+      parameters:
+        - $ref: '#/components/parameters/CartesiaVersion'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                grants:
+                  type: object
+                expires_in:
+                  type: integer
+      responses:
+        '200':
+          description: Access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expires_at:
+                    type: integer
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: Cartesia API key (sk_car_...)
+    BearerAuth:
+      type: http
+      scheme: bearer
+      description: Short-lived client access token
+  parameters:
+    CartesiaVersion:
+      in: header
+      name: Cartesia-Version
+      required: true
+      schema:
+        type: string
+        example: "2024-11-13"
+  schemas:
+    TtsRequest:
+      type: object
+      required: [model_id, transcript, voice, output_format]
+      properties:
+        model_id:
+          type: string
+          example: sonic-2
+        transcript:
+          type: string
+        voice:
+          type: object
+          properties:
+            mode:
+              type: string
+              enum: [id, embedding]
+            id:
+              type: string
+            embedding:
+              type: array
+              items:
+                type: number
+        language:
+          type: string
+        output_format:
+          type: object
+          properties:
+            container:
+              type: string
+              enum: [raw, wav, mp3]
+            sample_rate:
+              type: integer
+            encoding:
+              type: string
+        speed:
+          type: number
+        duration:
+          type: number
+    Voice:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        language:
+          type: string
+        embedding:
+          type: array
+          items:
+            type: number
